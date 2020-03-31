@@ -1,5 +1,5 @@
-setwd("/Users/jonemery/Google Drive/LSHTM - Research Fellow/03 R/Working directory")
-library("ggplot2", lib.loc="/Library/Frameworks/R.framework/Versions/3.5/Resources/library")
+#setwd("/Users/jonemery/Google Drive/LSHTM - Research Fellow/03 R/Working directory")
+library("ggplot2")
 
 ### Data preparation ###
 
@@ -8,19 +8,19 @@ library("ggplot2", lib.loc="/Library/Frameworks/R.framework/Versions/3.5/Resourc
 # Number of symptomatic cases by onset date for passengers (cabin contacts), passengers (other) and crew 
 # extracted from figure 1 in https://www.mdpi.com/2077-0383/9/3/657 
 
-data_symp = read.csv(file = "raw_data_symp_nishiura_20.csv", header = TRUE, sep = ",")    # raw data 
+data_symp = read.csv(file = "data/raw_data_symp_nishiura_20.csv", header = TRUE, sep = ",")    # raw data 
 data_symp$all = rowSums(data_symp[,c(-1)])                                                # aggregation into total cases
 data_symp$day_no = seq(1,length(data_symp$onset_date),1)                                  # add in day numbers (day 1 = Jan 20th)
 
 data_cases_symp = data_symp[,c("onset_date","day_no","all")]     # Incident symptomatic cases by onset date for model fitting
-write.csv(data_cases_symp, file = "data_cases_symp.csv", row.names = FALSE)             
+write.csv(data_cases_symp, file = "data/data_cases_symp.csv", row.names = FALSE)             
 
 ### Non-symptomatics 
 
 # Total number of tests, positive tests, symptomatic cases and non-symptomatic cases by date of PCR test 
 # extracted from Table 1 in https://www.eurosurveillance.org/content/10.2807/1560-7917.ES.2020.25.10.2000180
 
-data_non_symp = read.csv(file = "raw_data_non_symp_mizumoto_20.csv", header = TRUE, sep = ",") # raw data
+data_non_symp = read.csv(file = "data/raw_data_non_symp_mizumoto_20.csv", header = TRUE, sep = ",") # raw data
 data_non_symp$tests_non_symp = data_non_symp$tests - data_non_symp$symp                        # number of tests performed on everyone except symptomatics 
 data_non_symp$day_no = seq(1,length(data_symp$onset_date),1)                                   # add in day numbers (day 1 = Jan 20th)
 data_non_symp$tests_non_symp_cum = cumsum(data_non_symp$tests_non_symp)                        # cumulatiec number of tests performed on everyone except symptomatics 
@@ -29,7 +29,7 @@ data_tests = data_non_symp[,c("test_date","day_no","tests_non_symp_cum")]    # C
 write.csv(data_tests, file = "data_tests.csv", row.names = FALSE)
 
 data_cases_non_symp = data_non_symp[,c("test_date","day_no","non_symp")]     # Incident non-symptomatic cases by date of PCR test for model fitting
-write.csv(data_cases_non_symp, file = "data_cases_non_symp.csv", row.names = FALSE)             
+write.csv(data_cases_non_symp, file = "data/data_cases_non_symp.csv", row.names = FALSE)             
 
 
 ### Plots ###

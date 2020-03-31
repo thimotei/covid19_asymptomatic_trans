@@ -1,7 +1,7 @@
-setwd("/Users/jonemery/Google Drive/LSHTM - Research Fellow/03 R/Working directory")
-library("deSolve", lib.loc="/Library/Frameworks/R.framework/Versions/3.5/Resources/library")
-library("numDeriv", lib.loc="/Library/Frameworks/R.framework/Versions/3.5/Resources/library")
-library("FME", lib.loc="/Library/Frameworks/R.framework/Versions/3.5/Resources/library")
+#setwd("/Users/jonemery/Google Drive/LSHTM - Research Fellow/03 R/Working directory")
+library("deSolve")
+library("numDeriv")
+library("FME")
 
 ### times ###
 
@@ -40,9 +40,9 @@ upper = log(c("beta_bar" = 1000 ,  "b_1" = 1 ,     "b_2" = 1000,   "tau" = 32,  
 
 # Screening funtion f(t) = dN_tests/dt * 1/(S+E+I_p+I_a+C). Below calculates dN_tests/dt
 
-data_tests = read.table(file = "data_tests.csv", header = TRUE, sep = ",") # Input data on cumulative PCR tests on everyone except symptomatics and removed
+data_tests = read.table(file = "data/data_tests.csv", header = TRUE, sep = ",") # Input data on cumulative PCR tests on everyone except symptomatics and removed
 
-N_tests = splinefun(data_tests$day_no, data_tests$tests_non_symp_cum, method = "hyman") # Convert PCR test data to a continuous function 
+N_tests <-  splinefun(data_tests$day_no, data_tests$tests_non_symp_cum, method = "hyman") # Convert PCR test data to a continuous function 
                                                                                         # Note that t<0 and t>32 haven't been accounted for
  
 dN_tests = function(time){              # Time derivative of cumulative tests
@@ -141,11 +141,11 @@ traj_fit = function(parameters){
 
 ### fitting data ###
 
-data_cases_symp = read.csv(file = "data_cases_symp.csv", header = TRUE, sep = ",")          # bring in symptomatic cases data for fitting 
+data_cases_symp = read.csv(file = "data/data_cases_symp.csv", header = TRUE, sep = ",")          # bring in symptomatic cases data for fitting 
 names(data_cases_symp)[c(2,3)] = c("time","dI_sk")                                          # convert names to match model outputs 
 data_cases_symp$av = mean(data_cases_symp$dI_sk)                                            # add a mean column for fitting 
 
-data_cases_non_symp = read.csv(file = "data_cases_non_symp.csv", header = TRUE, sep = ",")  # bring in non-symptomatic cases data for fitting 
+data_cases_non_symp = read.csv(file = "data/data_cases_non_symp.csv", header = TRUE, sep = ",")  # bring in non-symptomatic cases data for fitting 
 names(data_cases_non_symp)[c(2,3)] = c("time","dR_n")                                       # convert names to match model outputs 
 data_cases_non_symp$av = mean(data_cases_non_symp$dR_n)                                     # add a mean column for fitting 
 
