@@ -38,13 +38,13 @@ functions {
     beta_bar = theta[1];
     b_2 = theta[2];
     chi = theta[3];
-    theta_a = theta[4];
-    nu = theta[5];
-    gamma_a = theta[6];
-    gamma_prop = theta[7];
-    gamma_s = theta[8];
-    t_mu = theta[9];
-    mu = theta[10];
+    nu = theta[4];
+    gamma_a = theta[5];
+    gamma_prop = theta[6];
+    gamma_s = theta[7];
+    t_mu = theta[8];
+    mu = theta[9];
+    theta_a = theta[10];
     theta_p = theta[11];
     phi = theta[12];
     N = theta[13];
@@ -85,7 +85,8 @@ data {
   real gamma_s; // 1/infectious period of symptomatic 
   real t_mu; // time after which passive case finding starts
   real mu; // rate of removal after symptom onset through passive case finding
-  real theta_p; // infectiousness of pre-symptomatic relative to symptomatic
+  //real theta_a; // infectiousness of pre-symptomatic relative to symptomatic
+  //real theta_p; // infectiousness of pre-symptomatic relative to symptomatic
   real phi; // proportion pre-symptomatic
   int N; // Number of passengers onboard
 }
@@ -94,10 +95,11 @@ transformed data {
   int y_i[0];
 }
 parameters {
-  real<lower=0> beta_bar; // initial transmission rate
+  real<lower=0, upper = 5> beta_bar; // initial transmission rate
   real <lower = 0> b_2; // gradient of transmission rate
   real<lower=0, upper = 1> chi; // proportion asymptomatic
   real<lower=0, upper = 1> theta_a; // infectiousness of asymptomatic relative to symptomatic
+  real<lower=0, upper = 1> theta_p; // infectiousness of asymptomatic relative to symptomatic
   real<lower = 0> sigma1;
   real<lower = 0> sigma2;
 }
@@ -109,19 +111,20 @@ model {
   beta_bar ~  normal(2.2, 1);
   b_2 ~ normal(0, 1) T[0,];
   chi ~ uniform(0, 1);
-  theta_a ~ uniform(0, 1);
-  sigma1 ~ cauchy(0, 2.5) T[0,];
-  sigma2 ~ cauchy(0, 2.5) T[0,];
+  theta_a ~ normal(0, 1);
+  theta_p ~ normal(0, 1);
+  sigma1 ~ cauchy(0, 1) T[0,];
+  sigma2 ~ cauchy(0, 1) T[0,];
       theta[1] = beta_bar;
       theta[2] = b_2;
       theta[3] = chi;
-      theta[4] = theta_a;
-      theta[5] = nu;
-      theta[6] = gamma_a;
-      theta[7] = gamma_prop;
-      theta[8] = gamma_s;
-      theta[9] = t_mu;
-      theta[10] = mu;
+      theta[4] = nu;
+      theta[5] = gamma_a;
+      theta[6] = gamma_prop;
+      theta[7] = gamma_s;
+      theta[8] = t_mu;
+      theta[9] = mu;
+      theta[10] = theta_a;
       theta[11] = theta_p;
       theta[12] = phi;
       theta[13] = N;
