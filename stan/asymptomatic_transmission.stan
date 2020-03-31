@@ -1,124 +1,135 @@
-// ode_asymptomatic transmission model
 functions {
-  real beta_t(real beta_bar, real b_1, real b_2, real tau, real t)
-  {
-    return(beta_bar*(1-b_1/(1+exp(-b_2*(t-tau)))));
-  }
-  real mu_t(real t, real t_mu)
-  {
+  real[] ode_model(real t, real[] y, real[] theta, real[] y_r, int[] y_i) {
+    real beta_t;
     real mu_t;
-    real mu;
-    if(t < t_mu)
-    {
-        mu_t = 0;
-    }
-    else
-    {
-        mu_t = mu;
-    }
-      return(mu_t);
-  }
-  real dN_tests_fun(real t)
-  {
-    return(-1.67487+13.8278*t-6.26078*t^2+0.841799*t^3-0.0438224*t^4+0.000838706*t^5);
-  }
-  real[] ode_model(real t, 
-                   real[] y, 
-                   real[] theta, 
-                   real[] y_r,
-                   int[] y_i) 
-  {
-    
+    real dN_tests_fun;
     real dydt[9];
-    dydt[1] = -beta_t(theta[1], theta[2], theta[3], theta[4], t)*((theta[6]*y[3] + theta[13]*y[4] + y[8] + y[5])/theta[15])*y[1];
-    dydt[2] = -beta_t(theta[1], theta[2], theta[3], theta[4], t)*((theta[6]*y[3] + theta[13]*y[4] + y[8] + y[5])/theta[15])*y[1] - theta[7]*y[2];
-    dydt[3] = theta[5]*theta[7]*y[2] - theta[8]*y[3] - dN_tests_fun(t)/(y[1]+y[2]+y[4]+y[3]+y[6])*y[3];
-    dydt[4] = (1-theta[5])*theta[7]*y[2] - theta[9]*y[4] - dN_tests_fun(t)/(y[1]+y[2]+y[4]+y[3]+y[6])*y[4];
-    dydt[5] = (1-theta[14])*theta[9]*y[4] - theta[10]*y[5] - mu_t(t, theta[11])*y[5];
-    dydt[6] = theta[8]*y[3] + theta[10]*y[8] + theta[10]*y[5];
-    dydt[7] = mu_t(t, theta[11])*y[8] + mu_t(t, theta[11])*y[5];
-    dydt[8] = theta[14]*theta[9]*y[4] - theta[10]*y[8] - mu_t(t, theta[11])*y[8];
-    dydt[9] = dN_tests_fun(t)/(y[1]+y[2]+y[4]+y[3]+y[6])*y[3] + dN_tests_fun(t)/(y[1]+y[2]+y[4]+y[3]+y[6])*y[4];
+    real S;
+    real E;
+    real I_a;
+    real I_p;
+    real I_su;
+    real C;
+    real R_s;
+    real I_sk;
+    real R_n;
+    real beta_bar;
+    real b_2;
+    real chi;
+    real theta_a;
+    real nu;
+    real gamma_a;
+    real gamma_prop;
+    real gamma_s;
+    real t_mu;
+    real mu;
+    real theta_p;
+    real phi;
+    real N;
+    S = y[1]; 
+    E = y[2];
+    I_a = y[3];
+    I_p = y[4]; 
+    I_su = y[5];
+    C = y[6];
+    R_s = y[7];
+    I_sk = y[8];
+    R_n = y[9];
+    beta_bar = theta[1];
+    b_2 = theta[2];
+    chi = theta[3];
+    theta_a = theta[4];
+    nu = theta[5];
+    gamma_a = theta[6];
+    gamma_prop = theta[7];
+    gamma_s = theta[8];
+    t_mu = theta[9];
+    mu = theta[10];
+    theta_p = theta[11];
+    phi = theta[12];
+    N = theta[13];
+    beta_t = (t < t_mu) ? beta_bar :  beta_bar * exp(- b_2 * (t - t_mu));
+    mu_t = (t < t_mu) ? 0 : mu;
+    dN_tests_fun = -1.67487+13.8278*t-6.26078*t^2+0.841799*t^3-0.0438224*t^4+0.000838706*t^5;
+//dSdt
+dydt[1] = -beta_t * ((theta_a * I_a + theta_p * I_p + I_sk + I_su) / N) * S;
+//dEdt
+dydt[2] = beta_t * ((theta_a * I_a + theta_p * I_p + I_sk + I_su) / N) * S - nu * E;
+//d(I_a)dt
+dydt[3] = chi * nu * E - gamma_a * I_a - dN_tests_fun / (S + E + I_a + I_p + C) * I_a;
+//d(I_p)dt
+dydt[4] = (1 - chi) * nu * E - gamma_prop * I_p - dN_tests_fun / (S + E + I_a + I_p + C) * I_p;   //d(I_su)dt
+//d(I_su)dt
+dydt[5] = (1 - phi) * gamma_prop * I_p - gamma_s * I_su - mu_t * I_su;
+//dCdt
+dydt[6] =  gamma_a * I_a + gamma_s * I_sk + gamma_s * I_su;
+//d(R_s)dt
+dydt[7] =  mu_t * I_sk + mu_t * I_su;
+//d(I_sk)dt
+dydt[8] =  phi * gamma_prop * I_p - gamma_s * I_sk - mu_t * I_sk; 
+//d(R_n)dt
+dydt[9] =  dN_tests_fun / (S + E + I_a + I_p + C) * I_a + dN_tests_fun / (S + E + I_a + I_p + C) * I_p;
     return dydt;
   }
 }
 data {
-  int<lower=1> t;
-  real<lower=0> y_obs_1[t];
-  real<lower=0> y_obs_2[t];
-  real t0;
-  real y0[9];
-  real ts[t];
+  int<lower=1> t; // number of timepoints
+  int<lower=0> y_obs_1[t]; 
+  int<lower=0> y_obs_2[t];
+  real t0; // Initial time value = 0
+  real y0[9]; // Initial values for each of the 9 compartments
+  real ts[t]; // Just 1:t
+  real nu; // 1/latent period 
+  real gamma_a; // 1/infectious period of asymptomatic     
+  real gamma_prop; // 1/infectious period of presymptomatic 
+  real gamma_s; // 1/infectious period of symptomatic 
+  real t_mu; // time after which passive case finding starts
+  real mu; // rate of removal after symptom onset through passive case finding
+  real theta_p; // infectiousness of pre-symptomatic relative to symptomatic
+  real phi; // proportion pre-symptomatic
+  int N; // Number of passengers onboard
 }
 transformed data {
   real y_r[0];
   int y_i[0];
 }
 parameters {
-  real<lower=0> sigmaNoise1;
-  real<lower=0> sigmaNoise2;
-  real<lower=0> beta_bar;
-  real<lower=0> b_1;         
-  real<lower=0> b_2;        
-  real<lower=0> tau;    
-  real<lower=0> chi; 
-  real<lower=0> theta_a;    
-  real<lower=0> y_mis[t,7];
+  real<lower=0> beta_bar; // initial transmission rate
+  real <lower = 0> b_2; // gradient of transmission rate
+  real<lower=0, upper = 1> chi; // proportion asymptomatic
+  real<lower=0, upper = 1> theta_a; // infectiousness of asymptomatic relative to symptomatic
+  real<lower = 0> sigma1;
+  real<lower = 0> sigma2;
 }
-transformed parameters{
-    real y_hat[t,9];
-    {
-      
-      real nu = 1.0/4.0;          
-      real gamma_a = 1.0/7.0;     
-      real gamma_prop = 1.0/2.4;   
-      real gamma_s = 1.0/3.2;   
-      real t_mu = 16.0;         
-      real mu = 1.0;            
-      real theta_p = 0.99;
-      real phi = 199.0/301.0;
-      int N = 3711;
-      
-      real theta[15];
-      theta[1] = beta_bar;
-      theta[2] = b_1;
-      theta[3] = b_2;
-      theta[4] = tau;
-      theta[5] = chi;
-      theta[6] = theta_a;
-      theta[7] = nu;
-      theta[8] = gamma_a;
-      theta[9] = gamma_prop;
-      theta[10] = gamma_s;
-      theta[11] = t_mu;
-      theta[12] = mu;
-      theta[13] = theta_p;
-      theta[14] = phi;
-      theta[15] = N;
-    
-      y_hat = integrate_ode_bdf(ode_model, y0, t0, ts, theta, y_r, y_i);
-
-    }
-}
-
 model {
-
-  beta_bar ~ uniform(0,2);
-  b_1 ~ uniform(0,1);         
-  b_2 ~ uniform(0,1000);        
-  tau ~ uniform(0,32);
-  chi ~ uniform(0,1);
-  theta_a ~ uniform(0,1);
-  
-  sigmaNoise1 ~ cauchy(0,2.5);
-  sigmaNoise2 ~ cauchy(0,2.5);
-  
-  for (i in 1:t)
-  {
-    y_mis[i,7] ~ normal(y_hat[i, 1:7], 0.01);
-    y_obs_1[i] ~ normal(y_hat[i, 8], sigmaNoise1);
-    y_obs_2[i] ~ normal(y_hat[i, 9], sigmaNoise2);
-    
+  real y_hat[t,9];
+  real theta[13];
+  real y_est_1[t];
+  real y_est_2[t];
+  beta_bar ~  normal(2.2, 1);
+  b_2 ~ normal(0, 1) T[0,];
+  chi ~ uniform(0, 1);
+  theta_a ~ uniform(0, 1);
+  sigma1 ~ cauchy(0, 2.5) T[0,];
+  sigma2 ~ cauchy(0, 2.5) T[0,];
+      theta[1] = beta_bar;
+      theta[2] = b_2;
+      theta[3] = chi;
+      theta[4] = theta_a;
+      theta[5] = nu;
+      theta[6] = gamma_a;
+      theta[7] = gamma_prop;
+      theta[8] = gamma_s;
+      theta[9] = t_mu;
+      theta[10] = mu;
+      theta[11] = theta_p;
+      theta[12] = phi;
+      theta[13] = N;
+      y_hat = integrate_ode_bdf(ode_model, y0, t0, ts, theta, y_r, y_i);
+  for(i in 1:t) {
+    y_est_1[i] = y_hat[i, 8]; // < 0 ? 0 : y_hat[i, 8];
+    y_est_2[i] = y_hat[i, 9]; // < 0 ? 0 : y_hat[i, 9];
+    target += normal_lpdf(y_obs_1[i] | y_est_1[i], sigma1) +
+    normal_lpdf(y_obs_2[i] | y_est_2[i], sigma2);
   }
 }
-    
