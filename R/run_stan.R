@@ -19,21 +19,20 @@ data_together <- list(t = length(data_cases_symp$I_sk),
                       t_mu = 16.0,
                       mu = 1.0,
                       phi = 199.0/301.0,
-                      N = 3711
-)
+                      N = 3711)
 
 mod_full <- rstan::stan_model(file = "stan/asymptomatic_transmission.stan")
 
 
 fit_full <- rstan::sampling(mod_full,
                             data = data_together, 
-                            chains = 2,
+                            chains = 1,
                             verbose = TRUE,
                             iter = 1000,
                             #warmup = 1000,
                             #algorithm = "Fixed_param",
                             refresh = 10,
-                            cores = 2)
+                            cores = 1)
                             #control = list(adapt_delta = 0.8))
 
 

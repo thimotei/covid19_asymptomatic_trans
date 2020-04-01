@@ -1,4 +1,4 @@
-parametersToPlot <- c("beta_bar", "b_2", "chi", "theta_p", "sigma1", "sigma2")
+parametersToPlot <- c("beta_bar", "b_1", "b_2", "tau", "chi", "theta_p", "theta_a", "sigma1", "sigma2")
 draws <- as.array(fit_full, pars=parametersToPlot)
 bayesplot::mcmc_trace(draws)
 
@@ -11,3 +11,5 @@ bayesplot::mcmc_areas(posterior,
 pairs(fit_full, pars = c("beta_bar", "sigma1"))
 
 pairs(fit_full, pars = parametersToPlot)
+
+fit_extracted <- rstan::extract(fit_full)
