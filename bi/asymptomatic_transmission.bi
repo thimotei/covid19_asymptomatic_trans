@@ -1,5 +1,14 @@
 model asymptomatic_transmission {
 
+  const N = 3711
+  const gamma_a = 1 / 7
+  const gamma_prop = 1 / 2.4
+  const gamma_s = 1 / 3.2
+  const t_mu = 16
+  const mu = 1
+  const phi = 199 / 301
+  const nu = 0.25
+
   state S
   state E
   state I_a
@@ -16,15 +25,7 @@ model asymptomatic_transmission {
   param b_2
   param chi
   param theta_a
-  param nu
-  param gamma_a
-  param gamma_prop
-  param gamma_s
-  param t_mu
-  param mu
   param theta_p
-  param phi
-  param N
   param sigma1
   param sigma2
 
@@ -33,8 +34,18 @@ model asymptomatic_transmission {
 
   sub transition (delta = 1.0) {
 
-    inline dN_tests_fun = -1.67487+13.8278*t_now-6.26078*t_now**2+0.841799*t_now**3-0.0438224*t_now**4+0.000838706*t_now**5
-    inline beta_t = (t_now < t_mu) ? beta_bar : beta_bar * exp(- b_2 * (t_now - t_mu))
+    inline dN_tests_fun = 290.076 // -
+        2 * 187.84 * t_now +
+        3 * 59.6627 * t_now ** 2 -
+        4 * 10.8069 * t_now ** 3 +
+        5 * 1.20729 * t_now ** 4 -
+        6 * 0.0862395 * t_now ** 5 +
+        7 * 0.00394737 * t_now ** 6 -
+        8 * 0.000111774 * t_now ** 7 +
+        9 * (1.77781e-6) * t_now ** 8 -
+        10 * (1.21093e-8) * t_now ** 9
+
+    inline beta_t = (t_now < t_mu) ? beta_bar : beta_bar * exp(-b_2 * (t_now - t_mu))
     inline mu_t = (t_now < t_mu) ? 0 : mu
 
     Z_ns <- 0
@@ -67,6 +78,6 @@ model asymptomatic_transmission {
 
   sub observation {
     symp ~ normal(Z_sk, sigma1)
-    no_symp ~ normal(Z_ns, sigma1)
+    no_symp ~ normal(Z_ns, sigma2)
   }
 }
