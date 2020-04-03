@@ -11,7 +11,7 @@ data_cases_symp <-
   dplyr::select(time = T, value = I_sk)
 
 data_cases_non_symp <-
-  readr::read_csv(file = here::here("data", "data_cases_non_symp.csv") %>%
+  readr::read_csv(file = here::here("data", "data_cases_non_symp.csv")) %>%
   dplyr::mutate(date = test_date, T = day_no, R_n = non_symp) %>%
   dplyr::select(time = T, value = R_n)
 
@@ -30,7 +30,7 @@ init <- list(S = 3710.0,
              Z_ns = 0)
 
 model <-
-  rbi::bi_model(file = here::here("bi", "asymptomatic_transmission.bi")
+  rbi::bi_model(file = here::here("bi", "asymptomatic_transmission.bi"))
 
 initial_fit <-
   rbi::sample(model, target = "posterior", proposal = "prior", nsamples = 1000,
