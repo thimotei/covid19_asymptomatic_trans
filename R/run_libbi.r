@@ -40,10 +40,10 @@ initial_fit <-
 adapted <- initial_fit %>%
   adapt_proposal(min = 0.2, max = 0.3)
 
-save_libbi(adapted, here::here("results", "adapted.rds"))
-
 posterior <- adapted %>%
   sample(nsamples = 10000)
+
+save_libbi(posterior, here::here("results", "posterior.rds"))
 
 traces <- get_traces(posterior, thin = 10)
 
