@@ -50,7 +50,7 @@ model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_troubl
 
 model_beta_bar_only <- fix(model, b_1 = 0.9, b_2 = 1, tau = 18, theta_p = 1, chi = 0, theta_a = 0)
 
-model_beta_bar_only_sample = rbi::sample(one_param_model, target = "posterior", nsamples = 100,
+model_beta_bar_only_sample = rbi::sample(model_beta_bar_only, target = "posterior", nsamples = 100,
                                          init = init, obs = obs, input = input, end_time = 32, noutputs = 32,
                                          verbose = TRUE)
 
