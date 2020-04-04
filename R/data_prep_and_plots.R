@@ -25,7 +25,7 @@ data_non_symp$tests_non_symp = data_non_symp$tests - data_non_symp$symp         
 data_non_symp$day_no = seq(1,length(data_symp$onset_date),1)                                   # add in day numbers (day 1 = Jan 20th)
 data_non_symp$tests_non_symp_cum = cumsum(data_non_symp$tests_non_symp)                        # cumulatiec number of tests performed on everyone except symptomatics 
 
-data_tests = data_non_symp[,c("test_date","day_no","tests_non_symp_cum")]    # Cumulative PCR tests as input for PCR screening function in the model
+data_tests = data_non_symp[,c("test_date","day_no","tests_non_symp","tests_non_symp_cum")]    # PCR (per day and cumulative) tests as input for PCR screening function in the model
 write.csv(data_tests, file = "data_tests.csv", row.names = FALSE)
 
 data_cases_non_symp = data_non_symp[,c("test_date","day_no","non_symp")]     # Incident non-symptomatic cases by date of PCR test for model fitting

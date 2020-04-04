@@ -34,7 +34,7 @@ model asymptomatic_transmission {
 
   sub transition (delta = 1.0) {
 
-    inline dN_tests_fun = 290.076 // -
+    inline dN_tests_fun = 290.076 -
         2 * 187.84 * t_now +
         3 * 59.6627 * t_now ** 2 -
         4 * 10.8069 * t_now ** 3 +
