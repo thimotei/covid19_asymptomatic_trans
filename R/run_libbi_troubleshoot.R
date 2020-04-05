@@ -9,6 +9,7 @@ library("tidyverse")
 library("rbi")
 library("rbi.helpers")
 library("GGally")
+library('coda')
 
 here::here()
 
@@ -29,41 +30,25 @@ data_tests <-
 
 obs <- list(symp = data_cases_symp, non_symp = data_cases_non_symp)
 
-init <- list(S = 3710.0,
-             E = 0,
-             I_a = 0,
-             I_p = 0,
-             I_su = 0,
-             I_sk = 1,
-             C = 0,
-             R_s = 0,
-             R_n = 0,
-             Z_sk = 0,
-             Z_n = 0,
-             delta_I_a = 0,
-             delta_I_a = 0,
-             N_tests = 0)
-
 input <- list(dN_tests = data_tests)
 
 model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_troubleshoot.bi"))
 
-model_beta_bar_only <- fix(model, b_1 = 0.9, b_2 = 1, tau = 18, theta_p = 1, chi = 0, theta_a = 0)
+initial_fit = rbi::sample(model, target = "posterior", nsamples = 10000,
+                          obs = obs, input = input, end_time = 32, noutputs = 32,
+                          verbose = TRUE)
 
-model_beta_bar_only_sample = rbi::sample(model_beta_bar_only, target = "posterior", nsamples = 100,
-                                         init = init, obs = obs, input = input, end_time = 32, noutputs = 32,
-                                         verbose = TRUE)
+adapted <- model_sample %>%
+  adapt_proposal(min = 0.2, max = 0.3)
+ 
+posterior <- adapted %>%
+  sample(nsamples = 10000)
 
-# initial_fit <- rbi::sample(model, target = "posterior", nsamples = 100,
-#                init = init, obs = obs, input = input, end_time = 32, noutputs = 32,
-#                verbose = TRUE)
-# 
-# adapted <- initial_fit %>%
-#   adapt_proposal(min = 0.2, max = 0.3)
-# 
-# save_libbi(adapted, here::here("results", "adapted.rds"))
-# 
-# posterior <- adapted %>%
-#   sample(nsamples = 1000)
-# 
-# save_libbi(posterior, here::here("results", "posterior.rds"))
+save_libbi(posterior, here::here("results", "posterior.rds"))
+
+traces = get_traces(posterior, thin = 100)
+
+pairs(traces)
+
+plot(mcmc(traces))
+

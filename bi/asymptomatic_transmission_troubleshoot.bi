@@ -8,6 +8,15 @@ model asymptomatic_transmission {
   const mu = 1
   const phi = 199 / 314
   const nu = 0.25
+  
+  param beta_bar
+  param b_1
+  param b_2
+  param tau
+  param chi
+  param theta_a
+  param theta_p
+  //param sigma
 
   input dN_tests
 
@@ -26,16 +35,35 @@ model asymptomatic_transmission {
   state delta_I_a
   state delta_I_p
 
-  param beta_bar
-  param b_1
-  param b_2
-  param tau
-  param chi
-  param theta_a
-  param theta_p
-
   obs symp
-  //obs non_symp
+  obs non_symp
+  
+  sub initial {
+    S <- 3710.0
+    E <- 0
+    I_a <- 0
+    I_p <- 0
+    I_su <- 0
+    I_sk <- 1
+    C <- 0
+    R_s <- 0
+    R_n <- 0  
+    Z_sk <- 0
+    Z_n <- 0
+    delta_I_a <- 0
+    delta_I_a <- 0  
+    N_tests <- 0
+  }
+
+  sub parameter {
+    beta_bar ~ uniform(0,100)
+    b_1 ~ uniform(0, 1)
+    b_2 ~ uniform(0,100)
+    tau ~ uniform(0, 32)
+    chi ~ uniform(0, 1)
+    theta_a ~ uniform(0, 1)
+    theta_p ~ uniform(0, 1)
+  }
 
   sub transition (delta = 1.0) {
 
@@ -57,7 +85,6 @@ model asymptomatic_transmission {
       dR_n/dt = 0
       dZ_sk/dt = phi * gamma_p * I_p
       dZ_n/dt = 0
-      
     }
     
     delta_I_a <- dN_tests / (S + E + I_a + I_p + C) * I_a
@@ -71,22 +98,18 @@ model asymptomatic_transmission {
     
   }
 
-  sub parameter {
-    beta_bar ~ uniform(0,1000)
-    b_1 ~ uniform(0, 1)
-    b_2 ~ uniforml(0,100)
-    tau ~ uniform(0, 32)
-    chi ~ uniform(0, 1)
-    theta_a ~ uniform(0, 1)
-    theta_p ~ uniform(0, 1)
-  }
-
   sub observation {
     symp ~ poisson(Z_sk)
-    //non_symp ~ poisson(Z_n) 
+    non_symp ~ poisson(Z_n) 
   }
   
   sub proposal_parameter {
-     beta_bar ~ truncated_gaussian(mean = beta_bar, std = 1, lower = 0, upper = 1000)
+     beta_bar ~ truncated_gaussian(mean = beta_bar, std = 1, lower = 0, upper = 100)
+     b_1 ~ truncated_gaussian(mean = b_1, std = 0.1, lower = 0, upper = 1)
+     b_2 ~ truncated_gaussian(mean = b_2, std = 1, lower = 0, upper = 100)
+     tau ~ truncated_gaussian(mean = tau, std = 0.5, lower = 0, upper = 32)
+     chi ~ truncated_gaussian(mean = chi, std = 0.1, lower = 0, upper = 1)
+     theta_a ~ truncated_gaussian(mean = theta_a, std = 0.1, lower = 0, upper = 1)
+     theta_p ~ truncated_gaussian(mean = theta_p, std = 0.1, lower = 0, upper = 1)
   }
 }
