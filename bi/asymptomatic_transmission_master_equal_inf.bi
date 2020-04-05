@@ -15,9 +15,7 @@ model asymptomatic_transmission {
   param tau
   param chi
   param theta_a
-  param theta_p
-  //param sigma
-
+  
   input dN_tests
 
   state S
@@ -62,7 +60,6 @@ model asymptomatic_transmission {
     tau ~ uniform(0, 32)
     chi ~ uniform(0, 1)
     theta_a ~ uniform(0, 1)
-    theta_p ~ uniform(0, 1)
   }
 
   sub transition (delta = 1.0) {
@@ -74,8 +71,8 @@ model asymptomatic_transmission {
     Z_n <- (t_now % 1 == 0 ? 0 : Z_n)
     
     ode {
-      dS/dt = -beta_t * ((theta_a * I_a + theta_p * I_p + I_sk + I_su) / N) * S
-      dE/dt = beta_t * ((theta_a * I_a + theta_p * I_p + I_sk + I_su) / N) * S - nu * E
+      dS/dt = -beta_t * ((theta_a * I_a + theta_a * I_p + I_sk + I_su) / N) * S
+      dE/dt = beta_t * ((theta_a * I_a + theta_a * I_p + I_sk + I_su) / N) * S - nu * E
       dI_a/dt = chi * nu * E - gamma_a * I_a
       dI_p/dt = (1 - chi) * nu * E - gamma_p * I_p
       dI_su/dt = (1 - phi) * gamma_p * I_p - gamma_s * I_su - mu_t * I_su
@@ -110,6 +107,5 @@ model asymptomatic_transmission {
      tau ~ truncated_gaussian(mean = tau, std = 0.5, lower = 0, upper = 32)
      chi ~ truncated_gaussian(mean = chi, std = 0.1, lower = 0, upper = 1)
      theta_a ~ truncated_gaussian(mean = theta_a, std = 0.1, lower = 0, upper = 1)
-     theta_p ~ truncated_gaussian(mean = theta_p, std = 0.1, lower = 0, upper = 1)
   }
 }
