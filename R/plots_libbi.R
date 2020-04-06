@@ -23,11 +23,11 @@ data_tests <-
   dplyr::mutate(date = test_date, T = day_no, dN_tests = tests_non_symp) %>% 
   dplyr::select(time = T, value = dN_tests)
 
-scenario = "presymp_only"
+scenario = "baseline_long"
 
 posterior = read_libbi(here::here("results", paste0("posterior_",scenario,".rds")))
 
-traces = get_traces(posterior, thin = 10)
+traces = get_traces(posterior, thin = 100)
 
 trajectories_resample = predict(posterior, start_time=0, end_time=32, output_every=1, nsamples = 10000)
 

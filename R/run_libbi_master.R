@@ -35,7 +35,7 @@ model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_master
 #model <- fix(model, chi = 0, theta_a = 0)                                                            # For the presymptomatic scenario 
 #model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_master_equal_inf.bi"))     # For the theta_a = theta_ p scenario 
 
-initial_fit = rbi::sample(model, target = "posterior", nsamples = 10000,
+initial_fit = rbi::sample(model, target = "posterior", nsamples = 1000,
                           obs = obs, input = input, end_time = 32, noutputs = 32,
                           verbose = TRUE)
 
@@ -43,9 +43,9 @@ adapted <- initial_fit %>%
   adapt_proposal(min = 0.2, max = 0.3)
  
 posterior <- adapted %>%
-  sample(nsamples = 250000)
+  sample(nsamples = 1000)
 
-save_libbi(posterior, here::here("results", "posterior_baseline.rds"))
+save_libbi(posterior, here::here("results", "posterior_baseline_test.rds"))
 
 
 
