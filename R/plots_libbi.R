@@ -23,17 +23,19 @@ data_tests <-
   dplyr::mutate(date = test_date, T = day_no, dN_tests = tests_non_symp) %>% 
   dplyr::select(time = T, value = dN_tests)
 
-scenario = "baseline_long"
+#posterior = read_libbi(here::here("results", paste0("posterior_",scenario,".rds")))
 
-posterior = read_libbi(here::here("results", paste0("posterior_",scenario,".rds")))
+#scenario = "baseline_long"
 
-traces = get_traces(posterior, thin = 100)
+traces = get_traces(posterior, thin = 10)
 
 trajectories_resample = predict(posterior, start_time=0, end_time=32, output_every=1, nsamples = 10000)
 
 trajectories = summary(trajectories_resample, type = "state")
-trajectories_non_obs = subset(trajectories, var %in% c("S","E","I_p","I_sk","I_su","I_a","C","R_s","R_n","N_tests"))
+trajectories_non_obs = subset(trajectories, var %in% c("S","E","I_p","I_sk","I_su","I_a","T","C","R_s","R_n","N_tests"))
 trajectories_obs = subset(trajectories, var %in% c("Z_sk","Z_n"))
+trajectories_prop_trans = subset(trajectories, var %in% c("dP_a","dP_p","dP_s"))
+trajectories_prop_trans_cum = subset(trajectories, var %in% c("P_a","P_p","P_s"))
 
 title_size = 20
 axis_title_size = 18
@@ -62,12 +64,28 @@ ggsave(c, file = here::here("plots", paste0(scenario,"_acf.png")), width = aspec
 d = ggplot(trajectories_non_obs, aes(x=time)) +
   geom_line(aes(y=Median), colour = colour_line) +
   geom_ribbon(aes(ymin= Min., ymax= Max.), fill = colour_line, alpha=alpha) +
-  facet_wrap(vars(var), scales="free",nrow=2) +
+  facet_wrap(vars(var), scales="free",nrow=3) +
   ylab("Number") 
 
 ggsave(d, file = here::here("plots", paste0(scenario,"_trajs.png")), width = 1.3*aspect_ratio*height, height = height, units = "cm", dpi = 300)
 
-e = ggplot(subset(trajectories_obs, var == "Z_sk"), aes(x=time)) +
+e = ggplot(trajectories_prop_trans, aes(x=time)) +
+  geom_line(aes(y=Median), colour = colour_line) +
+  geom_ribbon(aes(ymin= Min., ymax= Max.), fill = colour_line, alpha=alpha) +
+  facet_wrap(vars(var), scales="fix",nrow=2) +
+  ylab("Proportion") 
+
+ggsave(e, file = here::here("plots", paste0(scenario,"_prop_trans.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
+
+f = ggplot(trajectories_prop_trans_cum, aes(x=time)) +
+  geom_line(aes(y=Median), colour = colour_line) +
+  geom_ribbon(aes(ymin= Min., ymax= Max.), fill = colour_line, alpha=alpha) +
+  facet_wrap(vars(var), scales="fix",nrow=2) +
+  ylab("Proportion") 
+
+ggsave(f, file = here::here("plots", paste0(scenario,"_prop_trans_cum.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
+
+g = ggplot(subset(trajectories_obs, var == "Z_sk"), aes(x=time)) +
   geom_line(aes(y = Median), size = line_thickness, na.rm=TRUE, colour = colour_line) +
   geom_ribbon(aes(ymin = Min., ymax = Max.), fill = colour_line, alpha = alpha) +
   geom_point(data = data_cases_symp, aes(y = value), size = point_size, colour = "black") +
@@ -95,9 +113,9 @@ e = ggplot(subset(trajectories_obs, var == "Z_sk"), aes(x=time)) +
   #scale_colour_manual(name = NULL, values = c(colour_no_self_cure,colour_line), labels = c("No self-cure", "Self-cure")) +
   theme(legend.position = "none") 
 
-ggsave(e, file = here::here("plots", paste0(scenario,"_symp.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
+ggsave(g, file = here::here("plots", paste0(scenario,"_symp.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
 
-f = ggplot(subset(trajectories_obs, var == "Z_n"), aes(x=time)) +
+h = ggplot(subset(trajectories_obs, var == "Z_n"), aes(x=time)) +
   geom_line(aes(y = Median), size = line_thickness, na.rm=TRUE, colour = colour_line) +
   geom_ribbon(aes(ymin = Min., ymax = Max.), fill = colour_line, alpha = alpha) +
   geom_point(data = data_cases_non_symp, aes(y = value), size = point_size, colour = "black") +
@@ -125,6 +143,6 @@ f = ggplot(subset(trajectories_obs, var == "Z_n"), aes(x=time)) +
   #scale_colour_manual(name = NULL, values = c(colour_no_self_cure,colour_line), labels = c("No self-cure", "Self-cure")) +
   theme(legend.position = "none") 
 
-ggsave(f, file = here::here("plots", paste0(scenario,"_non_symp.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
+ggsave(h, file = here::here("plots", paste0(scenario,"_non_symp.png")), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
 
 

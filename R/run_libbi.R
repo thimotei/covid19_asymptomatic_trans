@@ -1,6 +1,5 @@
 #library('devtools')
 #install_github("libbi/rbihelpers")
-
 #library(devtools)
 #install_github("sbfnk/rbi.helpers")
 
@@ -32,23 +31,35 @@ obs <- list(symp = data_cases_symp, non_symp = data_cases_non_symp)
 
 input <- list(dN_tests = data_tests)
 
-model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_troubleshoot.bi"))
+# init <- list(beta_bar = 2.0,
+#              b_1 = 0.95,
+#              b_2 = 10,
+#              tau = 19,
+#              chi = 0.825,
+#              theta_a = 0.25,
+#              theta_p = 0.5)
 
-initial_fit = rbi::sample(model, target = "posterior", nsamples = 10000,
+model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_post_infection.bi"))               
+model <- fix(model, b_2 = 10, alpha = 0)                                                            
+#model <- fix(model, b_2 = 10, chi = 0, theta_a = 0)  
+ 
+initial_fit = rbi::sample(model, target = "posterior", nsamples = 10000, nparticles = 1,
                           obs = obs, input = input, end_time = 32, noutputs = 32,
                           verbose = TRUE)
 
-adapted <- model_sample %>%
+adapted <- initial_fit %>%
   adapt_proposal(min = 0.2, max = 0.3)
  
+
 posterior <- adapted %>%
-  sample(nsamples = 10000)
+  sample(nsamples = 500000)
 
-save_libbi(posterior, here::here("results", "posterior.rds"))
+#save_libbi(posterior, here::here("results", "posterior_baseline_long.rds"))
 
-traces = get_traces(posterior, thin = 100)
+#bi_read(posterior,thin = 10)
 
-pairs(traces)
 
-plot(mcmc(traces))
+
+
+
 

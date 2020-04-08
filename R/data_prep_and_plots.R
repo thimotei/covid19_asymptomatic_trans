@@ -23,10 +23,10 @@ write.csv(data_cases_symp, file = "data/data_cases_symp.csv", row.names = FALSE)
 data_non_symp = read.csv(file = "data/raw_data_non_symp_mizumoto_20.csv", header = TRUE, sep = ",") # raw data
 data_non_symp$tests_non_symp = data_non_symp$tests - data_non_symp$symp                        # number of tests performed on everyone except symptomatics 
 data_non_symp$day_no = seq(1,length(data_symp$onset_date),1)                                   # add in day numbers (day 1 = Jan 20th)
-data_non_symp$tests_non_symp_cum = cumsum(data_non_symp$tests_non_symp)                        # cumulatiec number of tests performed on everyone except symptomatics 
+data_non_symp$tests_non_symp_cum = cumsum(data_non_symp$tests_non_symp)                        # cumulative number of tests performed on everyone except symptomatics 
 
 data_tests = data_non_symp[,c("test_date","day_no","tests_non_symp","tests_non_symp_cum")]    # PCR (per day and cumulative) tests as input for PCR screening function in the model
-write.csv(data_tests, file = "data_tests.csv", row.names = FALSE)
+write.csv(data_tests, file = "data/data_tests.csv", row.names = FALSE)
 
 data_cases_non_symp = data_non_symp[,c("test_date","day_no","non_symp")]     # Incident non-symptomatic cases by date of PCR test for model fitting
 write.csv(data_cases_non_symp, file = "data/data_cases_non_symp.csv", row.names = FALSE)             
