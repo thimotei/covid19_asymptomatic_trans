@@ -31,13 +31,13 @@ obs <- list(symp = data_cases_symp, non_symp = data_cases_non_symp)
 
 input <- list(dN_tests = data_tests)
 
- # init <- list(beta_bar = 1.0,
- #              b_1 = 0.9,
- #              #b_2 = 10,
- #              tau = 5,
- #              chi = 0.8,
- #              theta_a = 0.9,
- #              theta_p = 0.5)
+# init <- list(beta_bar = 2.0,
+#              b_1 = 0.95,
+#              b_2 = 10,
+#              tau = 19,
+#              chi = 0.825,
+#              theta_a = 0.25,
+#              theta_p = 0.5)
 
 model <- rbi::bi_model(file = here::here("bi", "asymptomatic_transmission_primary.bi"))               
 model <- fix(model, b_2 = 10, alpha = 0)                                                            
@@ -51,16 +51,17 @@ adapted <- initial_fit %>%
   adapt_proposal(min = 0.2, max = 0.3)
  
 
-posterior <- adapted %>%
-  sample(nsamples = 100000)
+posterior_test <- adapted %>%
+  sample(nsamples = 100000, thin=10)
 
-save_libbi(posterior, here::here("results", "posterior_100000.rds"))
+save_libbi(posterior, here::here("results", "posterior_baseline_500.rds"))
 
-
-
-
+#bi_read(posterior,thin = 10)
 
 
+traces_test = get_traces(posterior_test)
+
+test_summary = summary(posterior_test,type="state")
 
 
 

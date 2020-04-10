@@ -1,12 +1,14 @@
 model asymptomatic_transmission {
   const N = 3711
-  const gamma_a = 1 / 7
+  const nu = 1 / 4
+  //const gamma_a = 1 / 7
   const gamma_p = 1 / 2.4
   const gamma_s = 1 / 3.2
+  const eta = 1 / 7
   const t_mu = 16
   const mu = 1
   const phi = 199 / 314
-  const nu = 0.25
+  const alpha = 0
   
   param beta_bar
   param b_1
@@ -15,6 +17,7 @@ model asymptomatic_transmission {
   param chi
   param theta_a
   param theta_p
+  param gamma_a
 
   input dN_tests
 
@@ -24,6 +27,7 @@ model asymptomatic_transmission {
   state I_p
   state I_su
   state I_sk
+  state T
   state C
   state R_s
   state R_n
@@ -46,7 +50,7 @@ model asymptomatic_transmission {
   state N_tests
   state delta_I_a
   state delta_I_p
-
+  state delta_T
   obs symp
   obs non_symp
   
@@ -57,6 +61,7 @@ model asymptomatic_transmission {
     I_p <- 0
     I_su <- 0
     I_sk <- 1
+    T <- 0
     C <- 0
     R_s <- 0
     R_n <- 0
@@ -77,7 +82,8 @@ model asymptomatic_transmission {
     Z_sk <- 0
     Z_n <- 0
     delta_I_a <- 0
-    delta_I_p <- 0  
+    delta_I_a <- 0  
+    delta_T <- 0
     N_tests <- 0
   }
 
@@ -89,6 +95,7 @@ model asymptomatic_transmission {
     chi ~ uniform(0, 1)
     theta_a ~ uniform(0, 1)
     theta_p ~ uniform(0, 1)
+    gamma_a ~ uniform(1/21,1)
   }
 
   sub transition (delta = 1.0) {
@@ -115,7 +122,8 @@ model asymptomatic_transmission {
       dI_p/dt = (1 - chi) * nu * E - gamma_p * I_p
       dI_su/dt = (1 - phi) * gamma_p * I_p - gamma_s * I_su - mu_t * I_su
       dI_sk/dt = phi * gamma_p * I_p - gamma_s * I_sk - mu_t * I_sk
-      dC/dt = gamma_a * I_a + gamma_s * I_sk + gamma_s * I_su
+      dT/dt = alpha * gamma_a * I_a - eta * T
+      dC/dt = (1 - alpha) * gamma_a * I_a + eta * T + gamma_s * I_sk + gamma_s * I_su
       dR_s/dt = mu_t * I_sk + mu_t * I_su
       dR_n/dt = 0
       dZ_sk/dt = phi * gamma_p * I_p
@@ -138,13 +146,15 @@ model asymptomatic_transmission {
     dP_p <- dE_p/dE_tot
     dP_s <- dE_s/dE_tot
   
-    delta_I_a <- dN_tests / (S + E + I_a + I_p + C) * I_a
-    delta_I_p <- dN_tests / (S + E + I_a + I_p + C) * I_p
+    delta_I_a <- dN_tests / (S + E + I_a + I_p + T + C) * I_a
+    delta_I_p <- dN_tests / (S + E + I_a + I_p + T + C) * I_p
+    delta_T <- dN_tests / (S + E + I_a + I_p + T + C) * T
     
     I_a <- I_a - delta_I_a
     I_p <- I_p - delta_I_p
-    R_n <- R_n + delta_I_a + delta_I_p
-    Z_n <- Z_n + delta_I_a + delta_I_p
+    T <- T - delta_T
+    R_n <- R_n + delta_I_a + delta_I_p + delta_T
+    Z_n <- Z_n + delta_I_a + delta_I_p + delta_T
     N_tests <- N_tests + dN_tests 
     
   }
@@ -162,5 +172,6 @@ model asymptomatic_transmission {
      chi ~ truncated_gaussian(mean = chi, std = 0.1, lower = 0, upper = 1)
      theta_a ~ truncated_gaussian(mean = theta_a, std = 0.1, lower = 0, upper = 1)
      theta_p ~ truncated_gaussian(mean = theta_p, std = 0.1, lower = 0, upper = 1)
+     gamma_a ~ truncated_gaussian(mean = gamma_a, std = 1, lower = 1/21, upper = 1)
   }
 }
