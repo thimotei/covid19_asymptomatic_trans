@@ -14,7 +14,7 @@ write.csv(data_cases_symp, file = here::here("data", "data_cases_symp.csv"), row
 
 ### Non-symptomatics 
 
-data_non_symp = read.csv(file = here::here("data", "raw_data_non_symp_mizumoto_20_new.csv"), header = TRUE, sep = ",")
+data_non_symp = read.csv(file = here::here("data", "raw_data_non_symp_mizumoto_20.csv"), header = TRUE, sep = ",")
 data_non_symp$tests_non_symp = data_non_symp$tests - data_non_symp$symp                       
 data_non_symp$day_no = seq(1,length(data_symp$onset_date),1)                                  
 data_non_symp$tests_non_symp_cum = cumsum(data_non_symp$tests_non_symp)                       
