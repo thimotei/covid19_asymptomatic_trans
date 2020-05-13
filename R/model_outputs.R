@@ -9,13 +9,19 @@ library("data.table")
 library("reshape2")
 library("parallel")
 
+
+
 ### Inputs ###
 
-posterior_name = ""
-sample_model_name = ""
+# Posterior to sample from 
 
-model <- rbi::bi_model(file = here::here("bi", paste0(sample_model_name, ".bi")))
-model <- fix(model)
+posterior_name = "primary"
+
+# LibBi model file to use for sampling 
+
+sample_model_name = "primary_sampler"
+
+# Number of samples 
 
 samples = 100000
 
@@ -23,7 +29,13 @@ samples = 100000
 
 ### Sample the posterior ###
 
+# Load the model and posterior
+
+model <- rbi::bi_model(file = here::here("bi", paste0(sample_model_name, ".bi")))
+
 posterior = read_libbi(here::here("posteriors", paste0(posterior_name,".rds")))
+
+# Shuffle and thin the posterior to find parameters to sample with
 
 traces_full = data.table(get_traces(posterior))
 traces_shuffled = traces_full[c(sample(dim(traces_full)[1],dim(traces_full)[1],replace=FALSE))]
@@ -51,19 +63,23 @@ traces_thinned = list(beta_bar = df_beta_bar,
 
 remove(traces_shuffled)
 
+# Run the model with the sampled parameters 
+
 trajectories_full = predict(posterior, model = model, init = traces_thinned, nsamples = samples, start_time=0, end_time=32, output_every=1, with=c("transform-obs-to-state"))
 
 remove(traces_thinned)
 
 
 
-### Figure 1 
+### Outputs for Figure 1 in main paper ###
 
 trajectories = summary(trajectories_full, type = "state", quantiles = c(0.025,0.975))
 
 prevalence = subset(trajectories, var %in% c("Z_prev"))
 
 observations = summary(trajectories_full, type = c("obs"), quantiles =  c(0.025,0.975))
+
+# Calculate R_0 
 
 NGM_comps_f = c("f_15","f_16","f_17","f_18", "f_19", "f_110", "f_111", "f_112", "f_25", "f_26", "f_27", "f_28", "f_29", "f_210","f_211","f_212")
 NGM_comps_v = c("v_11","v_22","v_31","v_33","v_42","v_44","v_53","v_55","v_64","v_66","v_73","v_77","v_84","v_88","v_97","v_99","v_108", "v_1010","v_117","v_1111","v_128","v_1212")
@@ -103,7 +119,7 @@ R_0[1,1] = 0
 
 
 
-### Figure 2
+### Outputs for Figure 2 in main paper ###
 
 traces = data.table(get_traces(trajectories_full))
 
@@ -118,7 +134,7 @@ found[,"var"] = c("clinical","subclinical")
 
 
 
-### Text
+###  Outputs for text in the main paper ###
 
 parameters = summary(trajectories_full, quantiles = c(0.025,0.975))
 
@@ -143,13 +159,15 @@ R_O_initial = R_O_initial[,c(2,3,4)]
 
 
 
-### Table
+### Outputs for Table 2 in the main paper
 
 thetas = data.table(thetas = traces$theta_a)
 
 prop_trans_table = proportion_transmission[,.(prop_trans = value)]
 
 R_0_0 = NGM_comp[time == 1, .(R_0_0 = R_0)]
+
+# Calculate R_net for presymptomatic/symptomatic
 
 NGM_comp = bi_read(trajectories_full, var = c(NGM_comps_f,NGM_comps_v))
 NGM_comp = melt(NGM_comp, id.vars = c("np","time"), variable.name = "L1")
@@ -236,7 +254,8 @@ theta_results_all = rbind(theta_results_1,
                           theta_results_6)
 
 
-### Supplementary materials ###
+
+### Outputs for supplementary materials ###
 
 parameter_results = parameters[,c("var","2.5%","Median","97.5%")]
 

@@ -6,9 +6,13 @@ library("patchwork")
 library("data.table")
 library("reshape2")
 
-### Main paper ###
+# Run 'model_outputs.R' in the same session and set up folder 'results' prior to running this script 
 
-### Text results ###
+
+
+### Results in the main paper ###
+
+# Results in the text
 
 num_res = 17
 
@@ -31,7 +35,7 @@ write.csv(text_results, file = here::here("results", paste0(posterior_name), "te
 
 
 
-### Table ###
+# Table 2 
 
 theta_results = data.table("theta_int" = rep("blank",6),theta_results_all)
 
@@ -49,27 +53,37 @@ write.csv(theta_results, file = here::here("results", paste0(posterior_name), "t
 
 
 
-### Plot data ###
+### Data for figures ###
+
+# Symptomatic - Crew
 
 data_cases_symp_1 <- 
   readr::read_csv(file = here::here("data", "data_cases_symp.csv")) %>%
   dplyr::mutate(date = onset_date, T = day_no, I_sk1 = crew) %>%
   dplyr::select(time = T, value = I_sk1)
 
+# Symptomatic - Passengers
+
 data_cases_symp_2 <- 
   readr::read_csv(file = here::here("data", "data_cases_symp.csv")) %>%
   dplyr::mutate(date = onset_date, T = day_no, I_sk2 = pass) %>%
   dplyr::select(time = T, value = I_sk2)
+
+# Non-symptomatic - All 
 
 data_cases_non_symp <- 
   readr::read_csv(file = here::here("data", "data_cases_non_symp.csv")) %>% 
   dplyr::mutate(date = test_date, T = day_no, R_n = non_symp) %>% 
   dplyr::select(time = T, value = R_n)
 
+# Testing
+
 data_tests <- 
   readr::read_csv(file = here::here("data", "data_tests.csv")) %>% 
   dplyr::mutate(date = test_date, T = day_no, dN_tests = tests_non_symp) %>% 
   dplyr::select(time = T, value = dN_tests)
+
+# Dates 
 
 dates <- 
   readr::read_csv(file = here::here("data", "dates_day_no_conv.csv")) %>%
@@ -77,8 +91,12 @@ dates <-
 
 dates = dates[seq(1,33,2),]
 
+# Key dates 
+
 index_case_pos = 13
 quarantine_starts = 16
+
+# Non-symptomatic data in prevalence format
 
 data_prev = data_cases_non_symp
 data_prev$value = data_prev$value/data_tests$value
@@ -87,7 +105,7 @@ data_prev$upper_unc = qbinom(c(0.975),data_tests$value,data_prev$value)/data_tes
 
 
 
-### Plots settings ###
+### Figure settings ###
 
 title_size = 13
 axis_title_size = 16
@@ -109,7 +127,9 @@ prior_colour = "deepskyblue2"
 
 
 
-### Figure 1 ###
+### Figures in the main paper ###
+
+# Figure 1
 
 clinical_fit_1 = 
   ggplot(subset(observations, var == "symp_1"), aes(x=time)) +
@@ -274,9 +294,7 @@ figure_1 = (clinical_fit_1|clinical_fit_2|subclinical_fit) / (prevalence_plot|ba
 
 ggsave(figure_1, file = here::here("results", paste0(posterior_name), "figure_1.png"), width = aspect_ratio*patches_height, height = patches_height, units = "cm", dpi = 300)
 
-
-
-### Figure 2 ###
+# Figure 2 
 
 prior_chi = data.frame(chi=seq(0,samples)/(1+samples))
 
@@ -401,7 +419,7 @@ ggsave(figure_2, file = here::here("results", paste0(posterior_name), "figure_2.
 
 ### Supplementary materials ###
 
-### Parameters 
+# Parameter estimates - Supplementary Table 3
 
 parameter_results_table = as.data.table(parameter_results)
 
@@ -416,10 +434,7 @@ parameter_results_table[var=="theta_p",c(2,3,4)] = round(parameter_results_table
 
 write.csv(parameter_results_table, file = here::here("results", paste0(posterior_name), "parameters.csv"), row.names = FALSE) 
 
-
-
-
-### Trace plots
+# Trace plot - Supplementary Figure 3
 
 bayesplot_theme_set(theme_default())
 
@@ -432,9 +447,7 @@ trace_plot =
 
 ggsave(trace_plot, file = here::here("results", paste0(posterior_name), "trace_plot.png"), width = aspect_ratio*height, height = height, units = "cm", dpi = 300)
 
-
-
-### Pair plots
+# Correlation plot - Supplementary Figure 2
 
 bayesplot_theme_set(theme_default())
 
@@ -446,8 +459,7 @@ pairs_plot = mcmc_pairs(traces_pairs,diag_fun = c("hist"), off_diag_args = list(
 
 ggsave(pairs_plot, file = here::here("results", paste0(posterior_name), "pairs_plot.png"), width = aspect_ratio*1.15*patches_height, height = 1.15*patches_height, units = "cm", dpi = 300)
 
-
-### Transmission/theta correlation plot 
+# Transmission/theta correlation plot - Supplementary Figure 4 
 
 bayesplot_theme_set(theme_default())
 
