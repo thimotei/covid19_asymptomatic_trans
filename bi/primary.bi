@@ -53,7 +53,7 @@ model primary {
   state delta_I_a2  (has_output = 0) 
   state delta_I_p1  (has_output = 0) 
   state delta_I_p2  (has_output = 0) 
-  state delta_T_1   (has_output = 0 
+  state delta_T_1   (has_output = 0) 
   state delta_T_2   (has_output = 0) 
   
   obs symp_1
